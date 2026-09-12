@@ -1,5 +1,7 @@
 package com.portfolio.finledger.model;
 
+import com.portfolio.finledger.exception.ValidationException;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -107,7 +109,7 @@ public final class Transaction implements Identifiable {
 
     private static TransactionType validateType(TransactionType type) {
         if (type == null) {
-            throw new IllegalArgumentException("Transaction type must not be null.");
+            throw new ValidationException("type", "Transaction type must not be null.");
         }
 
         return type;
@@ -115,18 +117,18 @@ public final class Transaction implements Identifiable {
 
     private static BigDecimal validateAmount(BigDecimal amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("Transaction amount must not be null.");
+            throw new ValidationException("amount", "Transaction amount must not be null.");
         }
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Transaction amount must be positive.");
+            throw new ValidationException("amount", "Transaction amount must be positive.");
         }
 
         try {
-            // Reject amounts requiring rounding beyond 2 decimal places.
             return amount.setScale(MONEY_SCALE, RoundingMode.UNNECESSARY);
         } catch (ArithmeticException exception) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
+                    "amount",
                     "Transaction amount must have at most " + MONEY_SCALE + " decimal places.",
                     exception
             );
@@ -135,7 +137,7 @@ public final class Transaction implements Identifiable {
 
     private static Category validateCategory(Category category) {
         if (category == null) {
-            throw new IllegalArgumentException("Transaction category must not be null.");
+            throw new ValidationException("category", "Transaction category must not be null.");
         }
 
         return category;
@@ -143,7 +145,7 @@ public final class Transaction implements Identifiable {
 
     private static LocalDate validateDate(LocalDate date) {
         if (date == null) {
-            throw new IllegalArgumentException("Transaction date must not be null.");
+            throw new ValidationException("date", "Transaction date must not be null.");
         }
 
         return date;
@@ -157,7 +159,8 @@ public final class Transaction implements Identifiable {
         String trimmed = description.trim();
 
         if (trimmed.length() > DESCRIPTION_MAX_LENGTH) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
+                    "description",
                     "Transaction description must not exceed " + DESCRIPTION_MAX_LENGTH + " characters."
             );
         }

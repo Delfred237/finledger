@@ -1,9 +1,12 @@
 package com.portfolio.finledger.repository.memory;
 
+import com.portfolio.finledger.exception.EntityNotFoundException;
+
 import com.portfolio.finledger.model.Category;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +67,24 @@ class InMemoryCategoryRepositoryTest {
         assertEquals("Groceries", categories.get(0).getName());
         assertEquals("Rent", categories.get(1).getName());
         assertEquals("Transport", categories.get(2).getName());
+    }
+
+    @Test
+    void renameShouldThrowEntityNotFoundWhenCategoryDoesNotExist() {
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> repository.rename(UUID.randomUUID(), "Food")
+        );
+    }
+
+    @Test
+    void updateShouldThrowEntityNotFoundWhenCategoryDoesNotExist() {
+        Category category = new Category("Groceries");
+
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> repository.update(category)
+        );
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.portfolio.finledger.repository.memory;
 import com.portfolio.finledger.model.Transaction;
 import com.portfolio.finledger.model.TransactionType;
 import com.portfolio.finledger.repository.TransactionRepository;
+import com.portfolio.finledger.exception.ValidationException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class InMemoryTransactionRepository extends InMemoryRepository<Transactio
     @Override
     public List<Transaction> findByType(TransactionType type) {
         if (type == null) {
-            throw new IllegalArgumentException("Transaction type must not be null.");
+            throw new ValidationException("type", "Transaction type must not be null.");
         }
 
         List<Transaction> result = new ArrayList<>();
@@ -37,7 +38,7 @@ public class InMemoryTransactionRepository extends InMemoryRepository<Transactio
     @Override
     public List<Transaction> findByCategoryId(UUID categoryId) {
         if (categoryId == null) {
-            throw new IllegalArgumentException("Category id must not be null.");
+            throw new ValidationException("categoryId", "Category id must not be null.");
         }
 
         List<Transaction> result = new ArrayList<>();
@@ -54,15 +55,18 @@ public class InMemoryTransactionRepository extends InMemoryRepository<Transactio
     @Override
     public List<Transaction> findByDateBetween(LocalDate startInclusive, LocalDate endInclusive) {
         if (startInclusive == null) {
-            throw new IllegalArgumentException("Start date must not be null.");
+            throw new ValidationException("startDate", "Start date must not be null.");
         }
 
         if (endInclusive == null) {
-            throw new IllegalArgumentException("End date must not be null.");
+            throw new ValidationException("endDate", "End date must not be null.");
         }
 
         if (startInclusive.isAfter(endInclusive)) {
-            throw new IllegalArgumentException("Start date must not be after end date.");
+            throw new ValidationException(
+                    "dateRange",
+                    "Start date must not be after end date."
+            );
         }
 
         List<Transaction> result = new ArrayList<>();

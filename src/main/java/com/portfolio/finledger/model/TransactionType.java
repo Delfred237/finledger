@@ -1,5 +1,7 @@
 package com.portfolio.finledger.model;
 
+import com.portfolio.finledger.exception.ValidationException;
+
 import java.math.BigDecimal;
 
 /**
@@ -55,11 +57,11 @@ public enum TransactionType {
 
     private static BigDecimal validateAmountForBalance(BigDecimal amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("Amount must not be null.");
+            throw new ValidationException("amount", "Amount must not be null.");
         }
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive.");
+            throw new ValidationException("amount", "Amount must be positive.");
         }
 
         return amount;

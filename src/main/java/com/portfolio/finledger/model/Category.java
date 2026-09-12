@@ -1,5 +1,7 @@
 package com.portfolio.finledger.model;
 
+import com.portfolio.finledger.exception.ValidationException;
+
 import java.util.UUID;
 import java.util.Objects;
 
@@ -109,17 +111,18 @@ public final class Category implements Identifiable {
      */
     private static String validateName(String name) {
         if (name == null) {
-            throw new IllegalArgumentException("Category name must not be null.");
+            throw new ValidationException("name", "Category name must not be null.");
         }
 
         String trimmed = name.trim();
 
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Category name must not be blank.");
+            throw new ValidationException("name", "Category name must not be blank.");
         }
 
         if (trimmed.length() > NAME_MAX_LENGTH) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
+                    "name",
                     "Category name must not exceed " + NAME_MAX_LENGTH + " characters."
             );
         }
@@ -143,7 +146,8 @@ public final class Category implements Identifiable {
         String trimmed = description.trim();
 
         if (trimmed.length() > DESCRIPTION_MAX_LENGTH) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
+                    "description",
                     "Category description must not exceed " + DESCRIPTION_MAX_LENGTH + " characters."
             );
         }

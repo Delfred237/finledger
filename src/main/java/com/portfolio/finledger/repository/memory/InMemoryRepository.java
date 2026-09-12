@@ -2,6 +2,9 @@ package com.portfolio.finledger.repository.memory;
 
 import com.portfolio.finledger.model.Identifiable;
 import com.portfolio.finledger.repository.Repository;
+import com.portfolio.finledger.exception.DuplicateEntityException;
+import com.portfolio.finledger.exception.EntityNotFoundException;
+import com.portfolio.finledger.exception.ValidationException;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,7 +26,7 @@ public abstract class InMemoryRepository<T extends Identifiable> implements Repo
 
     protected void requireNonNullEntity(T entity) {
         if (entity == null) {
-            throw new IllegalArgumentException("Entity must not be null.");
+            throw new ValidationException("entity", "Entity must not be null.");
         }
     }
 
@@ -33,11 +36,11 @@ public abstract class InMemoryRepository<T extends Identifiable> implements Repo
 
         UUID id = entity.getId();
         if (id == null) {
-            throw new IllegalArgumentException("Entity id must not be null.");
+            throw new ValidationException("id", "Entity id must not be null.");
         }
 
         if (entities.containsKey(id)) {
-            throw new IllegalStateException("Entity already exists with id: " + id);
+            throw new DuplicateEntityException("Entity already exists with id: " + id);
         }
 
         entities.put(id, entity);
@@ -72,11 +75,11 @@ public abstract class InMemoryRepository<T extends Identifiable> implements Repo
 
         UUID id = entity.getId();
         if (id == null) {
-            throw new IllegalArgumentException("Entity id must not be null.");
+            throw new ValidationException("id", "Entity id must not be null.");
         }
 
         if (!entities.containsKey(id)) {
-            throw new IllegalStateException("Entity does not exist with id: " + id);
+            throw new EntityNotFoundException("Entity does not exist with id: " + id);
         }
 
         entities.put(id, entity);

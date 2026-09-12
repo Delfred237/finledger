@@ -2,6 +2,9 @@ package com.portfolio.finledger.repository.memory;
 
 import com.portfolio.finledger.model.Category;
 import com.portfolio.finledger.repository.CategoryRepository;
+import com.portfolio.finledger.exception.DuplicateEntityException;
+import com.portfolio.finledger.exception.EntityNotFoundException;
+import com.portfolio.finledger.exception.ValidationException;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,7 +26,7 @@ public class InMemoryCategoryRepository extends InMemoryRepository<Category> imp
         requireNonNullEntity(category);
 
         if (existsByName(category.getName())) {
-            throw new IllegalStateException(
+            throw new DuplicateEntityException(
                     "A category with this name already exists: " + category.getName()
             );
         }
@@ -36,11 +39,11 @@ public class InMemoryCategoryRepository extends InMemoryRepository<Category> imp
         requireNonNullEntity(category);
 
         if (!existsById(category.getId())) {
-            throw new IllegalStateException("Category does not exist: " + category.getId());
+            throw new EntityNotFoundException("Category does not exist: " + category.getId());
         }
 
         if (existsByNameExcludingId(category.getName(), category.getId())) {
-            throw new IllegalStateException(
+            throw new DuplicateEntityException(
                     "Another category with this name already exists: " + category.getName()
             );
         }
@@ -96,20 +99,20 @@ public class InMemoryCategoryRepository extends InMemoryRepository<Category> imp
     @Override
     public void rename(UUID id, String newName) {
         if (id == null) {
-            throw new IllegalArgumentException("Category id must not be null.");
+            throw new ValidationException("id", "Category id must not be null.");
         }
 
         if (newName == null || newName.isBlank()) {
-            throw new IllegalArgumentException("Category name must not be blank.");
+            throw new ValidationException("name", "Category name must not be blank.");
         }
 
         Category category = entities.get(id);
         if (category == null) {
-            throw new IllegalStateException("Category does not exist: " + id);
+            throw new EntityNotFoundException("Category does not exist: " + id);
         }
 
         if (existsByNameExcludingId(newName, id)) {
-            throw new IllegalStateException(
+            throw new DuplicateEntityException(
                     "Another category with this name already exists: " + newName
             );
         }
