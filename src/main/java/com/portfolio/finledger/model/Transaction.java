@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.Objects;
 
 /**
  * Represents a financial transaction.
@@ -162,6 +163,24 @@ public final class Transaction implements Identifiable {
         }
 
         return trimmed;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof Transaction transaction)) {
+            return false;
+        }
+
+        return Objects.equals(id, transaction.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.portfolio.finledger.model;
 
 import java.util.UUID;
+import java.util.Objects;
 
 /**
  * Represents a budget category.
@@ -148,6 +149,24 @@ public final class Category implements Identifiable {
         }
 
         return trimmed;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof Category category)) {
+            return false;
+        }
+
+        return Objects.equals(id, category.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override
