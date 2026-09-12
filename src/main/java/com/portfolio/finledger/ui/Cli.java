@@ -8,6 +8,12 @@ import com.portfolio.finledger.service.CategoryService;
 import com.portfolio.finledger.service.DashboardSummary;
 import com.portfolio.finledger.service.TransactionService;
 import com.portfolio.finledger.service.TransactionSummaryService;
+import com.portfolio.finledger.exception.DuplicateEntityException;
+import com.portfolio.finledger.service.CategoryExpense;
+import com.portfolio.finledger.service.MonthlySummary;
+import com.portfolio.finledger.service.TransactionStatisticsService;
+
+import java.time.DateTimeException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +32,7 @@ public class Cli {
     private final CategoryService categoryService;
     private final TransactionService transactionService;
     private final TransactionSummaryService summaryService;
+    private final TransactionStatisticsService statisticsService;
 
     private boolean running = true;
 
@@ -33,12 +40,14 @@ public class Cli {
             ConsoleReader reader,
             CategoryService categoryService,
             TransactionService transactionService,
-            TransactionSummaryService summaryService
+            TransactionSummaryService summaryService,
+            TransactionStatisticsService statisticsService
     ) {
         this.reader = reader;
         this.categoryService = categoryService;
         this.transactionService = transactionService;
         this.summaryService = summaryService;
+        this.statisticsService = statisticsService;
     }
 
     /**
@@ -70,7 +79,8 @@ public class Cli {
         System.out.println("1. Dashboard");
         System.out.println("2. Transactions");
         System.out.println("3. Categories");
-        System.out.println("4. Exit");
+        System.out.println("4. Statistics");
+        System.out.println("5. Exit");
     }
 
     private void handleMainMenuChoice(int choice) {
@@ -78,7 +88,8 @@ public class Cli {
             case 1 -> showDashboard();
             case 2 -> handleTransactionsMenu();
             case 3 -> handleCategoriesMenu();
-            case 4 -> exit();
+            case 4 -> handleStatisticsMenu();
+            case 5 -> exit();
             default -> System.out.println("Invalid choice.");
         }
     }
@@ -259,7 +270,7 @@ public class Cli {
             );
 
             System.out.println("Category created: " + category.getName());
-        } catch (ValidationException exception) {
+        } catch (DuplicateEntityException | ValidationException exception) {
             System.out.println("Error: " + exception.getMessage());
         } catch (Exception exception) {
             System.out.println("Error: " + exception.getMessage());
@@ -282,6 +293,123 @@ public class Cli {
                     category.getName(),
                     category.getDescription().isEmpty() ? "" : " (" + category.getDescription() + ")"
             );
+        }
+    }
+
+    // ─────────────────────────────────────────────
+// Statistics
+// ─────────────────────────────────────────────
+
+    private void handleStatisticsMenu() {
+        System.out.println();
+        System.out.println("--- Statistics ---");
+        System.out.println("1. Expenses by category");
+        System.out.println("2. Top expense category");
+        System.out.println("3. Monthly evolution");
+        System.out.println("4. Back");
+
+        Optional<Integer> choice = reader.readInt("Choice: ");
+
+        if (choice.isEmpty()) {
+            System.out.println("Invalid input.");
+            return;
+        }
+
+        switch (choice.get()) {
+            case 1 -> showExpensesByCategory();
+            case 2 -> showTopExpenseCategory();
+            case 3 -> showMonthlyEvolution();
+            case 4 -> { /* back to main menu */ }
+            default -> System.out.println("Invalid choice.");
+        }
+    }
+
+    private void showExpensesByCategory() {
+        List<CategoryExpense> expenses = statisticsService.getExpensesByCategory();
+
+        System.out.println();
+        System.out.println("--- Expenses by Category ---");
+
+        if (expenses.isEmpty()) {
+            System.out.println("No expense found.");
+            return;
+        }
+
+        System.out.printf("%-20s | %12s | %12s%n", "Category", "Total", "Transactions");
+        System.out.println("----------------------------------------------");
+
+        for (CategoryExpense expense : expenses) {
+            System.out.printf(
+                    "%-20s | %12s | %12d%n",
+                    expense.category().getName(),
+                    expense.totalExpense(),
+                    expense.transactionCount()
+            );
+        }
+    }
+
+    private void showTopExpenseCategory() {
+        Optional<CategoryExpense> top = statisticsService.findTopExpenseCategory();
+
+        System.out.println();
+        System.out.println("--- Top Expense Category ---");
+
+        if (top.isEmpty()) {
+            System.out.println("No expense found.");
+            return;
+        }
+
+        CategoryExpense expense = top.get();
+
+        System.out.printf(
+                "Category: %s | Total: %s | Transactions: %d%n",
+                expense.category().getName(),
+                expense.totalExpense(),
+                expense.transactionCount()
+        );
+    }
+
+    private void showMonthlyEvolution() {
+        Optional<Integer> yearInput = reader.readInt("Year (empty for current year): ");
+        int year = yearInput.orElse(LocalDate.now().getYear());
+
+        try {
+            LocalDate start = LocalDate.of(year, 1, 1);
+            LocalDate end = LocalDate.of(year, 12, 31);
+
+            List<MonthlySummary> summaries = statisticsService.getMonthlyEvolution(start, end);
+
+            System.out.println();
+            System.out.println("--- Monthly Evolution " + year + " ---");
+
+            if (summaries.isEmpty()) {
+                System.out.println("No transaction found for this year.");
+                return;
+            }
+
+            System.out.printf(
+                    "%-8s | %12s | %12s | %12s | %12s%n",
+                    "Month",
+                    "Income",
+                    "Expense",
+                    "Net",
+                    "Transactions"
+            );
+
+            System.out.println("------------------------------------------------------------");
+
+            for (MonthlySummary summary : summaries) {
+                System.out.printf(
+                        "%-8s | %12s | %12s | %12s | %12d%n",
+                        summary.month(),
+                        summary.income(),
+                        summary.expense(),
+                        summary.net(),
+                        summary.transactionCount()
+                );
+            }
+        } catch (DateTimeException | ValidationException exception) {
+            System.out.println("Error: " + exception.getMessage());
         }
     }
 

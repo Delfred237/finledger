@@ -67,11 +67,15 @@ public final class Main {
         Scanner scanner = new Scanner(System.in);
         ConsoleReader reader = new ConsoleReader(scanner);
 
+        TransactionStatisticsService statisticsService =
+                new TransactionStatisticsService(transactionRepository);
+
         Cli cli = new Cli(
                 reader,
                 categoryService,
                 transactionService,
-                summaryService
+                summaryService,
+                statisticsService
         );
 
         // 7. Run CLI
