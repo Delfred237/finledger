@@ -11,7 +11,7 @@ import java.util.UUID;
  * This class is part of the domain model.
  * It must not contain CLI, persistence, or framework logic.
  */
-public final class Category {
+public final class Category implements Identifiable {
 
     /**
      * Maximum allowed length for a category name.
@@ -69,6 +69,7 @@ public final class Category {
         setDescription(description);
     }
 
+    @Override
     public UUID getId() {
         return id;
     }
