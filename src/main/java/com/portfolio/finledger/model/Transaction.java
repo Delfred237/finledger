@@ -30,7 +30,7 @@ public final class Transaction implements Identifiable {
     private String description;
 
     public Transaction(TransactionType type, BigDecimal amount, Category category, LocalDate date) {
-        this(type, amount, category, date, null);
+        this(UUID.randomUUID(), type, amount, category, date, null);
     }
 
     public Transaction(
@@ -40,14 +40,43 @@ public final class Transaction implements Identifiable {
             LocalDate date,
             String description
     ) {
-        this.id = UUID.randomUUID();
+        this(UUID.randomUUID(), type, amount, category, date, description);
+    }
 
-        // Setters are used to apply validation rules consistently.
+    private Transaction(
+            UUID id,
+            TransactionType type,
+            BigDecimal amount,
+            Category category,
+            LocalDate date,
+            String description
+    ) {
+        this.id = validateId(id);
+
         setType(type);
         setAmount(amount);
         setCategory(category);
         setDate(date);
         setDescription(description);
+    }
+
+    public static Transaction restore(
+            UUID id,
+            TransactionType type,
+            BigDecimal amount,
+            Category category,
+            LocalDate date,
+            String description
+    ) {
+        return new Transaction(id, type, amount, category, date, description);
+    }
+
+    private static UUID validateId(UUID id) {
+        if (id == null) {
+            throw new ValidationException("id", "Transaction id must not be null.");
+        }
+
+        return id;
     }
 
     @Override

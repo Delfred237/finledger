@@ -55,7 +55,7 @@ public final class Category implements Identifiable {
      * @param name category name, required
      */
     public Category(String name) {
-        this(name, null);
+        this(UUID.randomUUID(), name, null);
     }
 
     /**
@@ -65,11 +65,26 @@ public final class Category implements Identifiable {
      * @param description optional description, nullable
      */
     public Category(String name, String description) {
-        this.id = UUID.randomUUID();
+        this(UUID.randomUUID(), name, description);
+    }
 
-        // Setters are used here to apply validation rules.
+    private Category(UUID id, String name, String description) {
+        this.id = validateId(id);
+
         setName(name);
         setDescription(description);
+    }
+
+    public static Category restore(UUID id, String name, String description) {
+        return new Category(id, name, description);
+    }
+
+    private static UUID validateId(UUID id) {
+        if (id == null) {
+            throw new ValidationException("id", "Category id must not be null.");
+        }
+
+        return id;
     }
 
     @Override
