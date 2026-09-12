@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+*.iml
+.vscode
+
+# Maven build output
+target/
+
+# Local application data
+data/
+
+# Logs
+*.log
+
+# Documentation not needed inside image
+README.md

@@ -1,30 +1,92 @@
 package com.portfolio.finledger;
 
+import com.portfolio.finledger.repository.CategoryRepository;
+import com.portfolio.finledger.repository.TransactionRepository;
+import com.portfolio.finledger.repository.memory.InMemoryCategoryRepository;
+import com.portfolio.finledger.repository.memory.InMemoryTransactionRepository;
+import com.portfolio.finledger.service.CategoryService;
+import com.portfolio.finledger.service.PersistenceService;
+import com.portfolio.finledger.service.TransactionService;
+import com.portfolio.finledger.service.TransactionStatisticsService;
+import com.portfolio.finledger.service.TransactionSummaryService;
+import com.portfolio.finledger.storage.json.JsonFileStorage;
+import com.portfolio.finledger.ui.Cli;
+import com.portfolio.finledger.ui.ConsoleReader;
+
+import java.nio.file.Path;
+import java.util.Scanner;
+
 /**
- * Point d'entrée principal de l'application FinLedger CLI.
+ * Application entry point.
  *
- * Pour l'instant, cette classe affiche uniquement un message de démarrage.
- * Elle sera ensuite remplacée par un vrai lancement de l'interface CLI.
+ * Responsibilities:
+ * - Create repositories
+ * - Create storage
+ * - Create services
+ * - Load persisted data
+ * - Launch CLI
+ * - Save data on exit
  */
 public final class Main {
 
-    /**
-     * Constructeur privé.
-     *
-     * La classe Main n'a pas vocation à être instanciée.
-     * Elle sert uniquement de point d'entrée statique.
-     */
+    private static final Path DATA_FILE = Path.of("data", "finledger-data.json");
+
     private Main() {
-        // Aucune instanciation nécessaire.
     }
 
-    /**
-     * Méthode main appelée par la JVM au lancement de l'application.
-     *
-     * @param args arguments de la ligne de commande, non utilisés pour l'instant
-     */
     public static void main(String[] args) {
-        System.out.println("FinLedger CLI v0.1.0");
-        System.out.println("Initial project skeleton - next step: domain model.");
+        // 1. Create repositories
+        CategoryRepository categoryRepository = new InMemoryCategoryRepository();
+        TransactionRepository transactionRepository = new InMemoryTransactionRepository();
+
+        // 2. Create storage
+        JsonFileStorage storage = new JsonFileStorage(DATA_FILE);
+
+        // 3. Create persistence service
+        PersistenceService persistenceService = new PersistenceService(
+                categoryRepository,
+                transactionRepository,
+                storage
+        );
+
+        // 4. Load persisted data
+        try {
+            persistenceService.load();
+            System.out.println("Data loaded from: " + DATA_FILE.toAbsolutePath());
+        } catch (Exception exception) {
+            System.out.println("Warning: Could not load data. Starting fresh.");
+            System.out.println("Reason: " + exception.getMessage());
+        }
+
+        // 5. Create services
+        CategoryService categoryService = new CategoryService(categoryRepository);
+        TransactionService transactionService = new TransactionService(transactionRepository);
+        TransactionSummaryService summaryService = new TransactionSummaryService(transactionRepository);
+
+        // 6. Create UI
+        Scanner scanner = new Scanner(System.in);
+        ConsoleReader reader = new ConsoleReader(scanner);
+
+        Cli cli = new Cli(
+                reader,
+                categoryService,
+                transactionService,
+                summaryService
+        );
+
+        // 7. Run CLI
+        cli.run();
+
+        // 8. Save data on exit
+        try {
+            persistenceService.save();
+            System.out.println("Data saved to: " + DATA_FILE.toAbsolutePath());
+        } catch (Exception exception) {
+            System.out.println("Error: Could not save data.");
+            System.out.println("Reason: " + exception.getMessage());
+        }
+
+        // 9. Close scanner
+        scanner.close();
     }
 }
